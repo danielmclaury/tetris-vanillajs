@@ -7,8 +7,8 @@ const INIT_VELOCITY_SQUARES_PER_MS = 5 / 1000;
 var canvas, context;
 var height, width;
 
-var scoreDiv;
-var score;
+var scoreDiv, highScoreDiv;
+var score, highScore;
 
 var state;
 const PLAYING = 1;
@@ -35,18 +35,27 @@ const init = function()
 	context = canvas.getContext("2d");
 	
 	scoreDiv = document.getElementById('score');
+	highScoreDiv = document.getElementById('highscore');
 	
 	height = canvas.height;
 	width = canvas.width;
 	
 	dx = Math.floor(width / COLS);
 	dy = Math.floor(height / ROWS);
+	
+	highScore = 0;
 
 	start();
 };
 
 const start = function()
-{	
+{
+    if(score > highScore)
+	{
+		highScore = score;
+		highScoreDiv.innerHTML = highScore;
+	}
+	
 	grid = [];
 	
 	for(var row = 0; row < ROWS; row++)
@@ -91,6 +100,10 @@ const nextPiece = function()
 {
 	newPiece = getRandomPiece();
 	
+	[cx, cy] = getCenterOfMass(newPiece);
+	
+	newPiece = translatePiece(newPiece, Math.floor(COLS/2) - cx, 0);
+	
 	if(! newPieceOK(newPiece))
 	{
 		// game over, man!
@@ -114,7 +127,7 @@ const movePiece = function()
 	{
 		partialSquares = 0;
 		
-		var newPiece = translatedPiece(0, 1);
+		var newPiece = translatePiece(piece, 0, 1);
 		
 		if(! newPieceOK(newPiece))
 		{
@@ -182,7 +195,7 @@ const redrawPiece = function()
 		
 		[c, r] = square;
 		
-		if(newPieceOK(translatedPiece(0, 1)))
+		if(newPieceOK(translatePiece(piece, 0, 1)))
 		{
 			r += partialSquares;
 		}
@@ -231,23 +244,7 @@ const getRandomColor = function()
 
 const keypressListener = function(e)
 {
-	switch(e.key)
-	{
-	  case "ArrowLeft":
-	  case "ArrowRight":
-	  case "ArrowUp":
-	  case "ArrowDown":
-	  case "W":
-	  case "A":
-	  case "S":
-	  case "D":
-	  case "w":
-	  case "a":
-	  case "s":
-	  case "d":
-	    lastKey = e.key;
-        break;
-	}
+	lastKey = e.key;
 };
 
 const processInput = function()
@@ -259,27 +256,28 @@ const processInput = function()
       case "ArrowLeft":
 	  case "A":
 	  case "a":
-		var newPiece = translatedPiece(-1, 0);
+		var newPiece = translatePiece(piece, -1, 0);
 	    if(newPieceOK(newPiece)) { piece = newPiece; }
         break;
 		
 	  case "ArrowRight":
 	  case "D":
 	  case "d":
-	    var newPiece = translatedPiece(1, 0);
+	    var newPiece = translatePiece(piece, 1, 0);
 	    if(newPieceOK(newPiece)) { piece = newPiece; }
         break;
 		
 	  case "ArrowUp":
 	  case "W":
 	  case "w":
-	    var newPiece = rotatedPiece();
+	    var newPiece = rotatePiece(piece);
 		if(newPieceOK(newPiece)) { piece = newPiece; }
         break;
 		
 	  case "ArrowDown":
 	  case "S":
 	  case "s":
+	  case " ":
 	    speedBoost = 25;
         break;
 	}
@@ -287,9 +285,9 @@ const processInput = function()
 	lastKey = "";
 };
 
-const translatedPiece = function(dc, dr)
+const translatePiece = function(aPiece, dc, dr)
 {
-	return piece.map(function(square)
+	return aPiece.map(function(square)
 	{
 		[c, r] = square;
 		
@@ -297,29 +295,40 @@ const translatedPiece = function(dc, dr)
 	});
 }
 
-const rotatedPiece = function()
+const getCenterOfMass = function(newPiece)
 {
-	// Calculate center of mass
-	
 	var cx = 0; var cy = 0;
+	var squares = 0;
 	
-	piece.forEach(function(square)
+	newPiece.forEach(function(square)
 	{
 		var x; var y;
 		[x, y] = square;
 		
 		cx += x;
 		cy += y;
+		squares++;
 	});
 	
-	cx = Math.round(cx / 4);
-	cy = Math.round(cy / 4);
+	cx = Math.round(cx / squares);
+	cy = Math.round(cy / squares);
+	
+	return [cx, cy]
+}
+
+const rotatePiece = function(aPiece)
+{
+	// Calculate center of mass
+	
+	var cx, cy;
+	
+	[cx, cy] = getCenterOfMass(aPiece);
 	
 	// Rotate piece around center of mass
 	
 	newPiece = [];
 	
-	piece.forEach(function(square)
+	aPiece.forEach(function(square)
 	{
 		var x; var y;
 		[x, y] = square;
