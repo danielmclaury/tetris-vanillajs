@@ -178,10 +178,17 @@ const redrawPiece = function()
 {
 	piece.forEach(function(square)
 	{
+		var c, r;
+		
 		[c, r] = square;
 		
+		if(newPieceOK(translatedPiece(0, 1)))
+		{
+			r += partialSquares;
+		}
+		
 		context.fillStyle = pieceColor;
-		context.fillRect(c * dx, r * dy, dx, dy);
+		context.fillRect(c * dx, Math.floor(r * dy), dx, dy + 1);
 	});
 };
 
