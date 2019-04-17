@@ -230,6 +230,14 @@ const keypressListener = function(e)
 	  case "ArrowRight":
 	  case "ArrowUp":
 	  case "ArrowDown":
+	  case "W":
+	  case "A":
+	  case "S":
+	  case "D":
+	  case "w":
+	  case "a":
+	  case "s":
+	  case "d":
 	    lastKey = e.key;
         break;
 	}
@@ -242,18 +250,29 @@ const processInput = function()
 	switch(lastKey)
 	{
       case "ArrowLeft":
+	  case "A":
+	  case "a":
 		var newPiece = translatedPiece(-1, 0);
 	    if(newPieceOK(newPiece)) { piece = newPiece; }
         break;
+		
 	  case "ArrowRight":
+	  case "D":
+	  case "d":
 	    var newPiece = translatedPiece(1, 0);
 	    if(newPieceOK(newPiece)) { piece = newPiece; }
         break;
+		
 	  case "ArrowUp":
+	  case "W":
+	  case "w":
 	    var newPiece = rotatedPiece();
 		if(newPieceOK(newPiece)) { piece = newPiece; }
         break;
+		
 	  case "ArrowDown":
+	  case "S":
+	  case "s":
 	    speedBoost = 25;
         break;
 	}
