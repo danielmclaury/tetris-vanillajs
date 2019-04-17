@@ -1,5 +1,14 @@
+const ROWS = 30;
+const COLS = 15;
+
+const REFRESH_MS = 1000 / 90;
+const INIT_VELOCITY_SQUARES_PER_MS = 5 / 1000;
+
 var canvas, context;
 var height, width;
+
+var scoreDiv;
+var score;
 
 var state;
 const PLAYING = 1;
@@ -11,15 +20,12 @@ var grid;
 var piece;
 var pieceColor;
 
-const ROWS = 30;
-const COLS = 15;
-
 var lastKey;
 
-const REFRESH_MS = 1000 / 90;
-
-var velocity_squares_per_ms = 15 / 1000;
+var velocity_squares_per_ms;
+var speedBoost;
 var partialSquares;
+
 
 const init = function()
 {
@@ -27,6 +33,8 @@ const init = function()
 	
 	canvas = document.getElementById('tetris');
 	context = canvas.getContext("2d");
+	
+	scoreDiv = document.getElementById('score');
 	
 	height = canvas.height;
 	width = canvas.width;
@@ -38,7 +46,7 @@ const init = function()
 };
 
 const start = function()
-{
+{	
 	grid = [];
 	
 	for(var row = 0; row < ROWS; row++)
@@ -52,7 +60,11 @@ const start = function()
 	
 	partialSquares = 0;
 	
+	velocity_squares_per_ms = INIT_VELOCITY_SQUARES_PER_MS;
+	
 	state = PLAYING;
+	
+	score = 0;
 	
 	tick();
 };
@@ -89,12 +101,14 @@ const nextPiece = function()
 	{
 		piece = newPiece;
 		pieceColor = getRandomColor();
+		
+		velocity_squares_per_ms *= 1.01;
 	}	
 };
 
 const movePiece = function()
 {
-	partialSquares += velocity_squares_per_ms * REFRESH_MS;
+	partialSquares += velocity_squares_per_ms * REFRESH_MS * speedBoost;
 	
 	if(partialSquares > 1)
 	{
@@ -137,6 +151,10 @@ const removeRows = function()
 			linesRemoved++;
 		}
 	}
+	
+	score += linesRemoved * (linesRemoved + 1) / 2;
+	scoreDiv.innerHTML = score;
+	
 };
 
 const redrawGrid = function()
@@ -169,7 +187,7 @@ const redrawPiece = function()
 
 const getRandomPiece = function()
 {
-	var pieceNum = Math.floor(Math.random() * 6);
+	var pieceNum = Math.floor(Math.random() * 7);
 	
 	switch(pieceNum)
 	{
@@ -190,6 +208,10 @@ const getRandomPiece = function()
 		  
 		case 5:
 		  return [ [0, 0], [1, 1], [1, 0], [2, 1] ];
+		  
+		case 6:
+		  return [ [0, 0], [1, 0], [2, 0], [1, 1] ];
+		
 	}
 };
 
@@ -215,6 +237,8 @@ const keypressListener = function(e)
 
 const processInput = function()
 {
+	speedBoost = 1;
+	
 	switch(lastKey)
 	{
       case "ArrowLeft":
@@ -230,6 +254,7 @@ const processInput = function()
 		if(newPieceOK(newPiece)) { piece = newPiece; }
         break;
 	  case "ArrowDown":
+	    speedBoost = 25;
         break;
 	}
 	
