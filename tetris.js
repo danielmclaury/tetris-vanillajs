@@ -277,9 +277,20 @@ const processInput = function()
 	  case "ArrowDown":
 	  case "S":
 	  case "s":
-	  case " ":
 	    speedBoost = 25;
         break;
+		
+	  case " ":
+	    var newPiece = piece;
+		do
+		{
+			piece = newPiece;
+			newPiece = translatePiece(piece, 0, 1);
+		} while(newPieceOK(newPiece));
+		
+		partialSquares = 0;
+	    
+	    break;
 	}
 	
 	lastKey = "";
