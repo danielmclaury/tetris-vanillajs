@@ -4,19 +4,21 @@
   <script src="tetris.js"></script>
  </head>
  <body onload="init()">
-  <div>
-   <span><b>Score:</b> <span id="score">0</span></span>
-   <span><b>High Score</b>: <span id="highscore">0</span></span>
-  </div>
-  <div><canvas id="tetris" height="360" width="180" style="border:1px solid black;"/></div>
-  <div>
-   <table>
-    <tr><td><b>A/Left</b></td><td>Move left<td><td></tr>
-	<tr><td><b>D/Right</b></td><td>Move right<td><td></tr>
-	<tr><td><b>W/Up</b></td><td>Rotate<td></tr>
-	<tr><td><b>S/Down</b></td><td>Drop<td></tr>
-	<tr><td><b>Space</b></td><td>Immediate drop<td></tr>
-   </table>
+  <div style="display: inline-block;">
+	  <div>
+	   <span><b>Score:</b> <span id="score">0</span></span>
+	   <span style="float:right;"><b>High Score</b>: <span id="highscore">0</span></span>
+	  </div>
+	  <div><canvas id="tetris" height="360" width="180" style="border:1px solid black;"/></div>
+	  <div>
+	   <table>
+		<tr><td><b>A/Left</b></td><td>Move left<td><td></tr>
+		<tr><td><b>D/Right</b></td><td>Move right<td><td></tr>
+		<tr><td><b>W/Up</b></td><td>Rotate<td></tr>
+		<tr><td><b>S/Down</b></td><td>Speed up<td></tr>
+		<tr><td><b>Space</b></td><td>Immediate Drop<td></tr>
+	   </table>
+	  </div>
   </div>
  </body>
 </html>
