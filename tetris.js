@@ -16,6 +16,10 @@ const STOPPED = 2;
 
 var dx, dy;
 var grid;
+var grid_color;
+
+const GRID_VISIBLE_COLOR='#f0f0f0';
+const BACKGROUND_COLOR='rgba(0,0,0,0)';
 
 var piece;
 var pieceColor;
@@ -44,6 +48,8 @@ const init = function()
 	dy = Math.floor(height / ROWS);
 	
 	highScore = 0;
+	
+    grid_color = BACKGROUND_COLOR;
 
 	start();
 };
@@ -170,12 +176,35 @@ const removeRows = function()
 	
 };
 
+const redrawGridlines = function()
+{
+	context.strokeStyle = grid_color;
+	
+	for(var row = 0; row < ROWS; row++)
+	{
+		context.beginPath();
+		context.moveTo(0, row * dx);
+		context.lineTo(width, row * dx);
+		context.stroke();
+	}
+	
+	for(var col = 0; col < COLS; col++)
+	{
+		context.beginPath();
+		context.moveTo(col * dy, 0);
+		context.lineTo(col * dy, height);
+		context.stroke();		
+	}
+}
+
 const redrawGrid = function()
 {	
     context.clearRect(0, 0, width, height);
 	
+	redrawGridlines();
+		
 	for(var row = 0; row < ROWS; row++)
-	{	
+	{
 		for(var col = 0; col < COLS; col++)
 		{
 			if(grid[row][col] != null)
@@ -297,6 +326,18 @@ const processInput = function()
 		
 		absorbPieceIntoBackground();
 		nextPiece();
+		break;
+		
+	  case "g":
+	  
+	    if(grid_color == GRID_VISIBLE_COLOR)
+		{
+			grid_color = BACKGROUND_COLOR;
+		}
+		else
+		{
+			grid_color = GRID_VISIBLE_COLOR;
+		}
 	    
 	    break;
 	}
