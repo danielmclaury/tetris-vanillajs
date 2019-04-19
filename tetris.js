@@ -237,9 +237,16 @@ const getRandomPiece = function()
 
 const getRandomColor = function()
 {
-	return 'rgb('  + Array(3).fill(null)
-	       .map(x => Math.floor(Math.random() * 240))
-		   .join(",") + ')';
+	var rgb;
+
+	do
+	{
+	  rgb = Array(3).fill(null)
+	         .map(x => Math.floor(Math.random() * 255));
+	}	 
+	while(rgb[0] + rgb[1] + rgb[2] > 600);
+	
+	return 'rgb('  + rgb.join(",") + ')';
 };
 
 const keypressListener = function(e)
