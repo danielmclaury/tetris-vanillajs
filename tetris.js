@@ -119,6 +119,16 @@ const nextPiece = function()
 	}	
 };
 
+const absorbPieceIntoBackground = function()
+{
+	piece.forEach(function(square)
+	{
+		[c, r] = square;
+		
+		grid[r][c] = pieceColor;
+	});	
+}
+
 const movePiece = function()
 {
 	partialSquares += velocity_squares_per_ms * REFRESH_MS * speedBoost;
@@ -130,18 +140,8 @@ const movePiece = function()
 		var newPiece = translatePiece(piece, 0, 1);
 		
 		if(! newPieceOK(newPiece))
-		{
-			// Add piece to background grid
-			
-			piece.forEach(function(square)
-			{
-				[c, r] = square;
-				
-				grid[r][c] = pieceColor;
-			});
-			
-			// Start a new piece at the top
-			
+		{			
+			absorbPieceIntoBackground();
 			nextPiece();
 		}
 		else 
@@ -288,7 +288,8 @@ const processInput = function()
 			newPiece = translatePiece(piece, 0, 1);
 		} while(newPieceOK(newPiece));
 		
-		partialSquares = 0;
+		absorbPieceIntoBackground();
+		nextPiece();
 	    
 	    break;
 	}
