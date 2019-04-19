@@ -1,25 +1,66 @@
 <html>
- <head>
-  <title>Tetris</title>
-  <script src="tetris.js"></script>
- </head>
- <body onload="init()">
-  <div style="display: inline-block;">
-	  <div>
-	   <span><b>Score:</b> <span id="score">0</span></span>
-	   <span style="float:right;"><b>High Score</b>: <span id="highscore">0</span></span>
+  <head>
+    <title>Tetris</title>
+    <script src="tetris.js"></script>
+    <style>
+.button
+{
+  background-color: grey;
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+}
+    </style>
+  </head>
+  <body onload="init()">
+    <div style="display: inline-block;">
+      <div>
+	    <span>
+		  <b>Score:</b>
+		  <span id="score">0</span>
+		</span>
+        <span style="float:right;">
+		  <b>High Score:</b>
+		  <span id="highscore">0</span>
+		</span>
+      </div>
+      <div>
+	    <canvas id="tetris" height="360" width="180" 
+		        style="border:1px solid black;"/>
+      </div>
+	  <div style="text-align:center; width: 100%;">
+	    <div style="display:inline-block">
+	      <div style="display: grid; width:75px; height:50px;">
+	        <div style="grid-column-start: 1; grid-row-start: 2;"
+			     class="button" id="left"
+	             onmousedown="clickedLeft();"  onmouseup="unclickedLeft();">
+		    </div>
+		    <div style="grid-column-start: 2; grid-row-start: 1;"
+			     id="rotate" class="button" 
+	             onmousedown="clickedRotate();"  onmouseup="unclickedRotate();">
+			</div>
+		    <div style="grid-column-start: 2; grid-row-start: 2;"
+			     id="boost" class="button"
+	             onmousedown="clickedBoost();"  onmouseup="unclickedBoost();">
+			</div>	
+	        <div style="grid-column-start: 3; grid-row-start: 2;"
+	             class="button" id="right"
+				 onmousedown="clickedRight();" onmouseup="unclickedRight();">
+			</div>
+	      </div>
+	    </div>
 	  </div>
-	  <div><canvas id="tetris" height="360" width="180" style="border:1px solid black;"/></div>
 	  <div>
-	   <table>
-		<tr><td><b>A/Left</b></td><td>Move left<td><td></tr>
-		<tr><td><b>D/Right</b></td><td>Move right<td><td></tr>
-		<tr><td><b>W/Up</b></td><td>Rotate<td></tr>
-		<tr><td><b>S/Down</b></td><td>Speed up<td></tr>
-		<tr><td><b>Space</b></td><td>Immediate drop<td></tr>
-		<tr><td><b>G</b></td><td>Show/hide grid<td></tr>
-	   </table>
+	    <table>
+		  <tr><td><b>A/Left</b></td><td>Move left<td><td></tr>
+		  <tr><td><b>D/Right</b></td><td>Move right<td><td></tr>
+		  <tr><td><b>W/Up</b></td><td>Rotate<td></tr>
+		  <tr><td><b>S/Down</b></td><td>Speed up<td></tr>
+		  <tr><td><b>Space</b></td><td>Immediate drop<td></tr>
+		  <tr><td><b>G</b></td><td>Show/hide grid<td></tr>
+		  <tr><td><b>P</b></td><td>Pause<td></tr>
+	     </table>
 	  </div>
-  </div>
- </body>
+    </div>
+  </body>
 </html>

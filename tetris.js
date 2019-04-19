@@ -1,8 +1,13 @@
 const ROWS = 30;
 const COLS = 15;
 
-const REFRESH_MS = 1000 / 90;
+const FRAMES_PER_SEC = 90;
 const INIT_VELOCITY_SQUARES_PER_MS = 5 / 1000;
+const MOVE_DELAY_MSEC_FIRST = 250;
+const MOVE_DELAY_MSEC_SUBSEQUENT = 25;
+
+const GRID_VISIBLE_COLOR='#d0d0d0';
+const BACKGROUND_COLOR='rgba(0,0,0,0)';
 
 var canvas, context;
 var height, width;
@@ -18,28 +23,37 @@ var dx, dy;
 var grid;
 var grid_color;
 
-const GRID_VISIBLE_COLOR='#f0f0f0';
-const BACKGROUND_COLOR='rgba(0,0,0,0)';
-
 var piece;
 var pieceColor;
 
+var leftButton, rightButton, rotateButton, boostButton;
+var leftDown, rightDown;
+var leftCoolingDown, rightCoolingDown;
+
 var lastKey;
+var lastButton;
 
 var velocity_squares_per_ms;
 var speedBoost;
 var partialSquares;
 
+var paused;
 
 const init = function()
 {
-	document.addEventListener("keydown", keypressListener);
+	document.addEventListener("keydown", keydownListener);
+	document.addEventListener("keyup", keyupListener);
 	
 	canvas = document.getElementById('tetris');
 	context = canvas.getContext("2d");
 	
 	scoreDiv = document.getElementById('score');
 	highScoreDiv = document.getElementById('highscore');
+	
+	leftButton = document.getElementById('left');
+	rightButton = document.getElementById('right');
+	rotateButton = document.getElementById('rotate');
+	boostButton = document.getElementById('boost');
 	
 	height = canvas.height;
 	width = canvas.width;
@@ -56,6 +70,8 @@ const init = function()
 
 const start = function()
 {
+	paused = false;
+	
     if(score > highScore)
 	{
 		highScore = score;
@@ -81,20 +97,25 @@ const start = function()
 	
 	score = 0;
 	
+	speedBoost = 1;
+	
+	leftCoolingDown = false;
+	rightCoolingDown = false;
+	
 	tick();
 };
 
 const tick = function()
-{
+{	
 	if(state == PLAYING)
-	{	
+	{
 	  processInput();
 	  movePiece();
 	  removeRows();
 	  redrawGrid();
 	  redrawPiece();
 	  
-	  setTimeout(tick, REFRESH_MS);
+	  setTimeout(tick, 1000 / FRAMES_PER_SEC);
 	}
 	else if(state == STOPPED)
 	{
@@ -136,8 +157,10 @@ const absorbPieceIntoBackground = function()
 }
 
 const movePiece = function()
-{
-	partialSquares += velocity_squares_per_ms * REFRESH_MS * speedBoost;
+{	
+	if(paused) { return; }
+
+	partialSquares += velocity_squares_per_ms * 1000 / FRAMES_PER_SEC * speedBoost;
 	
 	if(partialSquares > 1)
 	{
@@ -278,71 +301,184 @@ const getRandomColor = function()
 	return 'rgb('  + rgb.join(",") + ')';
 };
 
-const keypressListener = function(e)
+const clickedLeft = function()
 {
-	lastKey = e.key;
+	leftButton.style.backgroundColor = 'orange';
+		
+	if(!leftDown && !leftCoolingDown)
+	{
+	  leftDown = true;
+	  rightDown = false;
+	  leftCoolingDown = true;
+	  var newPiece = translatePiece(piece, -1, 0);
+	  if(newPieceOK(newPiece)) { piece = newPiece; }
+	  setTimeout(() => leftCoolingDown = false, MOVE_DELAY_MSEC_FIRST);
+	}
 };
+
+const unclickedLeft = function()
+{
+	leftButton.style.backgroundColor = 'grey';
+	leftDown = false;
+	leftCoolingDown = false;
+};
+
+const clickedRight = function()
+{
+	rightButton.style.backgroundColor = 'orange';
+	
+	if(!rightDown && !rightCoolingDown)
+	{
+	  rightDown = true;
+	  leftDown = false;
+	  rightCoolingDown = true;
+	  var newPiece = translatePiece(piece, 1, 0);
+	  if(newPieceOK(newPiece)) { piece = newPiece; }
+	  setTimeout(() => rightCoolingDown = false, MOVE_DELAY_MSEC_FIRST);
+	}
+};
+
+const unclickedRight = function()
+{
+	rightButton.style.backgroundColor = 'grey';
+	rightDown = false;
+	rightCoolingDown = false;
+};
+
+const clickedRotate = function()
+{
+	rotateButton.style.backgroundColor = 'orange';
+	var newPiece = rotatePiece(piece);
+	if(newPieceOK(newPiece)) { piece = newPiece; }
+};
+
+const unclickedRotate = function()
+{
+	rotateButton.style.backgroundColor = 'grey';
+};
+
+const clickedBoost = function()
+{
+	boostButton.style.backgroundColor='orange';
+	speedBoost = 10;
+};
+
+const unclickedBoost = function()
+{
+	boostButton.style.backgroundColor='grey';
+	speedBoost = 1;
+};
+
+const keydownListener = function(e)
+{
+	if(e.key == "p" || e.key == "P")
+	{
+		paused = !paused;
+	}
+	
+	if(paused) { return; }
+	
+	switch(e.key)
+	{
+		case "ArrowLeft":
+		case "A":
+		case "a":
+			clickedLeft();
+			break;
+		
+		case "ArrowRight":
+		case "D":
+		case "d":
+			clickedRight();
+			break;
+			
+		case "ArrowUp":
+		case "W":
+		case "w":
+			clickedRotate();
+			break;
+			
+		case "ArrowDown":
+		case "S":
+		case "s":
+			clickedBoost();
+			break;
+			
+		case " ":
+			var newPiece = piece;
+			do
+			{
+				piece = newPiece;
+				newPiece = translatePiece(piece, 0, 1);
+			} while(newPieceOK(newPiece));
+			
+			absorbPieceIntoBackground();
+			nextPiece();
+			break;
+			
+		case "G":
+		case "g":
+			if(grid_color == GRID_VISIBLE_COLOR)
+			{
+				grid_color = BACKGROUND_COLOR;
+			}
+			else
+			{
+				grid_color = GRID_VISIBLE_COLOR;
+			}
+			break;
+	}
+};
+
+const keyupListener = function(e)
+{
+	switch(e.key)
+	{
+		case "ArrowLeft":
+		case "A":
+		case "a":
+			unclickedLeft();
+			break;
+		
+		case "ArrowRight":
+		case "D":
+		case "d":
+			unclickedRight();
+			break;
+			
+		case "ArrowDown":
+		case "S":
+		case "s":
+			unclickedBoost();
+			break;
+			
+		case "ArrowUp":
+		case "W":
+		case "w":
+			unclickedRotate();
+			break;
+	}
+}
 
 const processInput = function()
 {
-	speedBoost = 1;
+	if(paused) { return; }
 	
-	switch(lastKey)
-	{
-      case "ArrowLeft":
-	  case "A":
-	  case "a":
+	if(leftDown && ! leftCoolingDown)
+	{		
 		var newPiece = translatePiece(piece, -1, 0);
-	    if(newPieceOK(newPiece)) { piece = newPiece; }
-        break;
-		
-	  case "ArrowRight":
-	  case "D":
-	  case "d":
-	    var newPiece = translatePiece(piece, 1, 0);
-	    if(newPieceOK(newPiece)) { piece = newPiece; }
-        break;
-		
-	  case "ArrowUp":
-	  case "W":
-	  case "w":
-	    var newPiece = rotatePiece(piece);
 		if(newPieceOK(newPiece)) { piece = newPiece; }
-        break;
-		
-	  case "ArrowDown":
-	  case "S":
-	  case "s":
-	    speedBoost = 25;
-        break;
-		
-	  case " ":
-	    var newPiece = piece;
-		do
-		{
-			piece = newPiece;
-			newPiece = translatePiece(piece, 0, 1);
-		} while(newPieceOK(newPiece));
-		
-		absorbPieceIntoBackground();
-		nextPiece();
-		break;
-		
-	  case "g":
-	  
-	    if(grid_color == GRID_VISIBLE_COLOR)
-		{
-			grid_color = BACKGROUND_COLOR;
-		}
-		else
-		{
-			grid_color = GRID_VISIBLE_COLOR;
-		}
-	    
-	    break;
+		leftCoolingDown = true;
+		setTimeout(() => leftCoolingDown = false, MOVE_DELAY_MSEC_SUBSEQUENT);
 	}
 	
-	lastKey = "";
+	if(rightDown && ! rightCoolingDown)
+	{
+		var newPiece = translatePiece(piece, 1, 0);
+		if(newPieceOK(newPiece)) { piece = newPiece; }
+		rightCoolingDown = true;
+		setTimeout(() => rightCoolingDown = false, MOVE_DELAY_MSEC_SUBSEQUENT);
+	}
 };
 
 const translatePiece = function(aPiece, dc, dr)
@@ -353,7 +489,7 @@ const translatePiece = function(aPiece, dc, dr)
 		
 		return [c + dc, r + dr];
 	});
-}
+};
 
 const getCenterOfMass = function(newPiece)
 {
@@ -374,7 +510,7 @@ const getCenterOfMass = function(newPiece)
 	cy = Math.round(cy / squares);
 	
 	return [cx, cy]
-}
+};
 
 const rotatePiece = function(aPiece)
 {
@@ -400,7 +536,7 @@ const rotatePiece = function(aPiece)
 	});
 	
 	return newPiece;
-}
+};
 
 const newPieceOK = function(newPiece)
 {
@@ -415,4 +551,4 @@ const newPieceOK = function(newPiece)
   }	
 
   return true;  
-}
+};
